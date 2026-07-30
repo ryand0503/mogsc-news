@@ -89,10 +89,8 @@
 <script>
 var PROXY='https://api.rss2json.com/v1/api.json?rss_url=';
 function reg(tag){
-  return PROXY+encodeURIComponent(
-    'https://api.theregister.com/api/v1/article?query=tag:'+encodeURIComponent(tag)+
-    '&orderBy=published&site_id=2&remapper=rss&limit=20&_cb='+Date.now()
-  );
+  return 'https://api.theregister.com/api/v1/article?query=tag:'+encodeURIComponent(tag)+
+    '&orderBy=published&site_id=2&remapper=rss&limit=20&_cb='+Date.now();
 }
 var FEEDS=[
   reg('energy'),
@@ -100,21 +98,21 @@ var FEEDS=[
   reg('cloud'),
   reg('software'),
   'https://www.reddit.com/r/energy.rss?limit=20',
-  'https://www.reddit.com/r/worldnews+energy+business.rss?limit=20'
+  'https://www.reddit.com/r/worldnews.rss?limit=20'
 ];
 
 var FALLBACK_ITEMS=[
   {title:'MOGSC 2026 — Malaysia O&G Services Sector Outlook',link:'https://www.mogsc.org',pubDate:new Date().toISOString(),source:'MOGSC'},
-  {title:'PETRONAS Awards New Upstream Contracts in Malaysia',link:'https://www.petronas.com',pubDate:new Date(Date.now()-86400000).toISOString(),source:'PETRONAS'},
-  {title:'Malaysia Oil & Gas Sector Targets RM 30B Revenue in 2026',link:'#',pubDate:new Date(Date.now()-2*86400000).toISOString(),source:'Industry'},
-  {title:'MUPEX 2026 — Upstream Petroleum Exhibition Preview',link:'#',pubDate:new Date(Date.now()-3*86400000).toISOString(),source:'MUPEX'},
-  {title:'OGA 2026 Conference Highlights Malaysia Energy Transition',link:'#',pubDate:new Date(Date.now()-4*86400000).toISOString(),source:'OGA'},
-  {title:'Malaysian Oil Services Companies Report Strong Q2 2026 Results',link:'#',pubDate:new Date(Date.now()-5*86400000).toISOString(),source:'Bursa'},
-  {title:'Sarawak Onshore Production Milestone — AKW First Oil Achieved',link:'#',pubDate:new Date(Date.now()-6*86400000).toISOString(),source:'Upstream'},
-  {title:'Malaysia Advances Renewable Energy Integration in Offshore Operations',link:'#',pubDate:new Date(Date.now()-7*86400000).toISOString(),source:'Energy'},
+  {title:'PETRONAS Awards New Upstream Contracts in Malaysia',link:'https://www.petronas.com/media/press-release',pubDate:new Date(Date.now()-86400000).toISOString(),source:'PETRONAS'},
+  {title:'Malaysia Oil & Gas Sector Targets RM 30B Revenue in 2026',link:'https://www.mogsc.org',pubDate:new Date(Date.now()-2*86400000).toISOString(),source:'MOGSC'},
+  {title:'MUPEX 2026 — Upstream Petroleum Exhibition Preview',link:'https://www.mupex.com.my',pubDate:new Date(Date.now()-3*86400000).toISOString(),source:'MUPEX'},
+  {title:'OGA 2026 Conference Highlights Malaysia Energy Transition',link:'https://www.ogashow.com',pubDate:new Date(Date.now()-4*86400000).toISOString(),source:'OGA'},
+  {title:'Malaysian Oil Services Companies Report Strong Q2 2026 Results',link:'https://www.bursamalaysia.com',pubDate:new Date(Date.now()-5*86400000).toISOString(),source:'Bursa Malaysia'},
+  {title:'Sarawak Onshore Production Milestone — AKW First Oil Achieved',link:'https://www.petronas.com',pubDate:new Date(Date.now()-6*86400000).toISOString(),source:'Upstream'},
+  {title:'Malaysia Advances Renewable Energy Integration in Offshore Operations',link:'https://www.mogsc.org',pubDate:new Date(Date.now()-7*86400000).toISOString(),source:'MOGSC'},
   {title:'MOGSC Membership Drive 2026 — Supporting Malaysian O&G Services',link:'https://www.mogsc.org',pubDate:new Date(Date.now()-8*86400000).toISOString(),source:'MOGSC'},
-  {title:'Asia Pacific LNG Demand Growth Supports Malaysia Upstream Investment',link:'#',pubDate:new Date(Date.now()-9*86400000).toISOString(),source:'LNG World'},
-  {title:'PETRONAS Carigali Expands HUC Contracts for Malaysia Shelf Projects',link:'#',pubDate:new Date(Date.now()-10*86400000).toISOString(),source:'Upstream'}
+  {title:'Asia Pacific LNG Demand Growth Supports Malaysia Upstream Investment',link:'https://www.petronas.com',pubDate:new Date(Date.now()-9*86400000).toISOString(),source:'PETRONAS'},
+  {title:'PETRONAS Carigali Expands HUC Contracts for Malaysia Shelf Projects',link:'https://www.petronas.com/media/press-release',pubDate:new Date(Date.now()-10*86400000).toISOString(),source:'PETRONAS'}
 ];
 
 var _items=[];
@@ -163,7 +161,8 @@ function buildHero(items){
     var src=(item.source||item.author||'News').replace(/</g,'&lt;');
     var ago=timeAgo(item.pubDate||new Date());
     var fb=OG_IMGS[i%OG_IMGS.length];
-    return '<div class="hero-slide">'
+    var link=item.link||'#';
+    return '<a class="hero-slide" href="'+link+'" target="_blank" rel="noopener" style="display:block;text-decoration:none;">'
       +(img
         ?'<img src="'+img+'" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.src=\''+fb+'\'">'
         :'<img src="'+fb+'" alt="" style="width:100%;height:100%;object-fit:cover;">')
@@ -173,7 +172,7 @@ function buildHero(items){
         +'<div class="hero-title">'+(item.title||'').replace(/</g,'&lt;')+'</div>'
         +'<div class="hero-meta">'+src+' · '+ago+'</div>'
       +'</div>'
-      +'</div>';
+      +'</a>';
   }).join('');
   var count=Math.min(items.length,5);
   dots.innerHTML=Array.from({length:count},function(_,i){
@@ -213,7 +212,7 @@ function buildGrid(items){
     var ago=timeAgo(item.pubDate||new Date());
     var url=item.link||'#';
     var fallbackImg=OG_IMGS[idx%OG_IMGS.length];
-    return '<div class="ntile" onclick="window.open(\''+url+'\',\'_blank\')">'
+    return '<a class="ntile" href="'+url+'" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">'
       +'<div class="ntile-img">'
         +(img
           ?'<img src="'+img+'" alt="" loading="lazy" onerror="this.src=\''+fallbackImg+'\'">'
@@ -224,7 +223,7 @@ function buildGrid(items){
         +'<div class="ntile-title">'+(item.title||'').replace(/</g,'&lt;')+'</div>'
         +'<div class="ntile-meta">'+ago+'</div>'
       +'</div>'
-      +'</div>';
+      +'</a>';
   }).join('');
 }
 
@@ -235,7 +234,7 @@ function tryFeed(idx){
     buildGrid(FALLBACK_ITEMS);
     return;
   }
-  var url=typeof FEEDS[idx]==='string'?PROXY+encodeURIComponent(FEEDS[idx])+'&count=20':FEEDS[idx];
+  var url=PROXY+encodeURIComponent(FEEDS[idx])+'&count=20';
   fetch(url)
     .then(function(r){return r.json();})
     .then(function(d){
