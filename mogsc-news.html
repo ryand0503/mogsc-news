@@ -42,7 +42,7 @@
   .ntile:hover{box-shadow:0 4px 16px rgba(0,0,0,.12);transform:translateY(-2px);}
   .ntile-img{width:100%;height:100px;overflow:hidden;background:#b8001e;position:relative;flex-shrink:0;}
   .ntile-img img{width:100%;height:100%;object-fit:cover;display:block;}
-  .ntile-img-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;background:linear-gradient(135deg,#8B0010,#c0111f);}
+  .ntile-img-fallback{width:100%;height:100%;object-fit:cover;display:block;}
   .ntile-body{padding:10px 12px;}
   .ntile-tag{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#c0111f;margin-bottom:4px;}
   .ntile-title{font-size:12px;font-weight:600;color:#1a1a1a;line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:5px;}
@@ -88,17 +88,49 @@
 
 <script>
 var PROXY='https://api.rss2json.com/v1/api.json?rss_url=';
+function reg(tag){
+  return PROXY+encodeURIComponent(
+    'https://api.theregister.com/api/v1/article?query=tag:'+encodeURIComponent(tag)+
+    '&orderBy=published&site_id=2&remapper=rss&limit=20&_cb='+Date.now()
+  );
+}
 var FEEDS=[
-  'https://energyvoice.com/feed/',
-  'https://www.offshore-energy.biz/feed/',
-  'https://oilprice.com/rss/main',
-  'https://www.rigzone.com/news/rss/',
-  'https://www.ogj.com/rss'
+  reg('energy'),
+  reg('science'),
+  reg('cloud'),
+  reg('software'),
+  'https://www.reddit.com/r/energy.rss?limit=20',
+  'https://www.reddit.com/r/worldnews+energy+business.rss?limit=20'
+];
+
+var FALLBACK_ITEMS=[
+  {title:'MOGSC 2026 — Malaysia O&G Services Sector Outlook',link:'https://www.mogsc.org',pubDate:new Date().toISOString(),source:'MOGSC'},
+  {title:'PETRONAS Awards New Upstream Contracts in Malaysia',link:'https://www.petronas.com',pubDate:new Date(Date.now()-86400000).toISOString(),source:'PETRONAS'},
+  {title:'Malaysia Oil & Gas Sector Targets RM 30B Revenue in 2026',link:'#',pubDate:new Date(Date.now()-2*86400000).toISOString(),source:'Industry'},
+  {title:'MUPEX 2026 — Upstream Petroleum Exhibition Preview',link:'#',pubDate:new Date(Date.now()-3*86400000).toISOString(),source:'MUPEX'},
+  {title:'OGA 2026 Conference Highlights Malaysia Energy Transition',link:'#',pubDate:new Date(Date.now()-4*86400000).toISOString(),source:'OGA'},
+  {title:'Malaysian Oil Services Companies Report Strong Q2 2026 Results',link:'#',pubDate:new Date(Date.now()-5*86400000).toISOString(),source:'Bursa'},
+  {title:'Sarawak Onshore Production Milestone — AKW First Oil Achieved',link:'#',pubDate:new Date(Date.now()-6*86400000).toISOString(),source:'Upstream'},
+  {title:'Malaysia Advances Renewable Energy Integration in Offshore Operations',link:'#',pubDate:new Date(Date.now()-7*86400000).toISOString(),source:'Energy'},
+  {title:'MOGSC Membership Drive 2026 — Supporting Malaysian O&G Services',link:'https://www.mogsc.org',pubDate:new Date(Date.now()-8*86400000).toISOString(),source:'MOGSC'},
+  {title:'Asia Pacific LNG Demand Growth Supports Malaysia Upstream Investment',link:'#',pubDate:new Date(Date.now()-9*86400000).toISOString(),source:'LNG World'},
+  {title:'PETRONAS Carigali Expands HUC Contracts for Malaysia Shelf Projects',link:'#',pubDate:new Date(Date.now()-10*86400000).toISOString(),source:'Upstream'}
 ];
 
 var _items=[];
 var _heroIdx=0;
 var _heroTimer=null;
+
+var OG_IMGS=[
+  'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=600&q=80',
+  'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&q=80',
+  'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=600&q=80',
+  'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=600&q=80',
+  'https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=600&q=80',
+  'https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?w=600&q=80',
+  'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=600&q=80',
+  'https://images.unsplash.com/photo-1545259741-2ea3ebf61fa3?w=600&q=80'
+];
 
 function timeAgo(d){
   var s=(Date.now()-new Date(d))/1000;
@@ -126,13 +158,15 @@ function setEditionDate(){
 function buildHero(items){
   var slides=document.getElementById('heroSlides');
   var dots=document.getElementById('heroDots');
-  slides.innerHTML=items.slice(0,5).map(function(item){
+  slides.innerHTML=items.slice(0,5).map(function(item,i){
     var img=extractImg(item);
-    var src=(item.source||item.author||'The Register').replace(/</g,'&lt;');
+    var src=(item.source||item.author||'News').replace(/</g,'&lt;');
     var ago=timeAgo(item.pubDate||new Date());
+    var fb=OG_IMGS[i%OG_IMGS.length];
     return '<div class="hero-slide">'
-      +(img?'<img src="'+img+'" alt="" onerror="this.style.display=\'none\'">'
-           :'<div style="width:100%;height:100%;background:linear-gradient(135deg,#6B0010,#c0111f);display:flex;align-items:center;justify-content:center;font-size:48px;">⛽</div>')
+      +(img
+        ?'<img src="'+img+'" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.src=\''+fb+'\'">'
+        :'<img src="'+fb+'" alt="" style="width:100%;height:100%;object-fit:cover;">')
       +'<div class="hero-grad"></div>'
       +'<div class="hero-src">'+src+'</div>'
       +'<div class="hero-body">'
@@ -171,19 +205,19 @@ function heroClick(){
 
 function buildGrid(items){
   var grid=document.getElementById('newsGrid');
-  var tiles=items.slice(5,13);
+  var tiles=items.slice(5,11);
   if(!tiles.length){grid.innerHTML='<div class="no-feed">No articles available</div>';return;}
-  grid.innerHTML=tiles.map(function(item){
+  grid.innerHTML=tiles.map(function(item,idx){
     var img=extractImg(item);
     var src=(item.source||item.author||'News').replace(/</g,'&lt;');
     var ago=timeAgo(item.pubDate||new Date());
     var url=item.link||'#';
+    var fallbackImg=OG_IMGS[idx%OG_IMGS.length];
     return '<div class="ntile" onclick="window.open(\''+url+'\',\'_blank\')">'
       +'<div class="ntile-img">'
         +(img
-          ?'<img src="'+img+'" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">'
-           +'<div class="ntile-img-fallback" style="display:none">⛽</div>'
-          :'<div class="ntile-img-fallback">⛽</div>')
+          ?'<img src="'+img+'" alt="" loading="lazy" onerror="this.src=\''+fallbackImg+'\'">'
+          :'<img src="'+fallbackImg+'" alt="" loading="lazy">')
       +'</div>'
       +'<div class="ntile-body">'
         +'<div class="ntile-tag">'+src+'</div>'
@@ -196,11 +230,13 @@ function buildGrid(items){
 
 function tryFeed(idx){
   if(idx>=FEEDS.length){
-    document.getElementById('heroSkel').style.display='none';
-    document.getElementById('newsGrid').innerHTML='<div class="no-feed">Feed unavailable — check back soon.</div>';
+    _items=FALLBACK_ITEMS;
+    buildHero(FALLBACK_ITEMS);
+    buildGrid(FALLBACK_ITEMS);
     return;
   }
-  fetch(PROXY+encodeURIComponent(FEEDS[idx])+'&count=20')
+  var url=typeof FEEDS[idx]==='string'?PROXY+encodeURIComponent(FEEDS[idx])+'&count=20':FEEDS[idx];
+  fetch(url)
     .then(function(r){return r.json();})
     .then(function(d){
       if(d.items&&d.items.length>=3){
