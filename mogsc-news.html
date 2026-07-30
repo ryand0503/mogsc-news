@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MOGSC – Malaysia O&G News</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#f4f4f4;color:#1a1a1a;padding:16px;}
+
+  /* HEADER */
+  .hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+  .hdr-left{display:flex;align-items:center;gap:10px;}
+  .live-dot{width:9px;height:9px;border-radius:50%;background:#16a34a;flex-shrink:0;animation:pulse 1.8s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+  .hdr-title{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#1a1a1a;}
+  .hdr-edition{font-size:11px;color:#666;margin-top:1px;}
+  .mogsc-badge{background:#c0111f;color:#fff;font-size:10px;font-weight:800;letter-spacing:.05em;padding:3px 10px;border-radius:4px;text-transform:uppercase;}
+  .refresh-btn{background:none;border:none;cursor:pointer;color:#888;font-size:16px;line-height:1;padding:4px;border-radius:4px;transition:color .2s;}
+  .refresh-btn:hover{color:#c0111f;}
+
+  /* HERO CAROUSEL */
+  .hero-wrap{position:relative;border-radius:10px;overflow:hidden;margin-bottom:16px;background:#222;cursor:pointer;}
+  .hero-slides{display:flex;transition:transform .45s cubic-bezier(.4,0,.2,1);}
+  .hero-slide{min-width:100%;position:relative;height:200px;flex-shrink:0;}
+  .hero-slide img{width:100%;height:100%;object-fit:cover;display:block;}
+  .hero-grad{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.82) 0%,rgba(0,0,0,.2) 55%,transparent 100%);}
+  .hero-src{position:absolute;top:12px;left:12px;background:#c0111f;color:#fff;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:4px;}
+  .hero-body{position:absolute;bottom:0;left:0;right:0;padding:14px 16px;}
+  .hero-title{font-size:16px;font-weight:700;color:#fff;line-height:1.35;margin-bottom:5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  .hero-meta{font-size:11px;color:rgba(255,255,255,.7);}
+  .hero-dots{position:absolute;bottom:12px;right:14px;display:flex;gap:5px;align-items:center;}
+  .hero-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.4);transition:background .2s,transform .2s;cursor:pointer;}
+  .hero-dot.active{background:#fff;transform:scale(1.3);}
+  .hero-skel{height:200px;border-radius:10px;background:linear-gradient(90deg,#ddd 25%,#eee 50%,#ddd 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;margin-bottom:16px;}
+  @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+  /* MORE NEWS GRID */
+  .more-hdr{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:10px;}
+  .news-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .ntile{background:#fff;border-radius:8px;overflow:hidden;cursor:pointer;transition:box-shadow .18s,transform .18s;border:1px solid #e8e8e8;}
+  .ntile:hover{box-shadow:0 4px 16px rgba(0,0,0,.12);transform:translateY(-2px);}
+  .ntile-img{width:100%;height:100px;overflow:hidden;background:#b8001e;position:relative;flex-shrink:0;}
+  .ntile-img img{width:100%;height:100%;object-fit:cover;display:block;}
+  .ntile-img-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px;background:linear-gradient(135deg,#8B0010,#c0111f);}
+  .ntile-body{padding:10px 12px;}
+  .ntile-tag{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#c0111f;margin-bottom:4px;}
+  .ntile-title{font-size:12px;font-weight:600;color:#1a1a1a;line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:5px;}
+  .ntile-meta{font-size:10px;color:#888;}
+  .ntile-skel{height:180px;border-radius:8px;background:linear-gradient(90deg,#ddd 25%,#eee 50%,#ddd 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;}
+  .no-feed{grid-column:1/-1;text-align:center;padding:24px;color:#aaa;font-size:12px;}
+
+  @media(max-width:500px){.news-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="live-dot"></div>
+    <div>
+      <div class="hdr-title">Malaysia O&amp;G &amp; MOGSC News</div>
+      <div class="hdr-edition" id="editionDate">Loading…</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span class="mogsc-badge">MOGSC</span>
+    <button class="refresh-btn" onclick="loadAll()" title="Refresh">↻</button>
+  </div>
+</div>
+
+<!-- HERO CAROUSEL -->
+<div id="heroSkel" class="hero-skel"></div>
+<div class="hero-wrap" id="heroWrap" style="display:none" onclick="heroClick()">
+  <div class="hero-slides" id="heroSlides"></div>
+  <div class="hero-dots" id="heroDots"></div>
+</div>
+
+<!-- MORE NEWS -->
+<div class="more-hdr">More Industry News</div>
+<div class="news-grid" id="newsGrid">
+  <div class="ntile-skel"></div>
+  <div class="ntile-skel"></div>
+  <div class="ntile-skel"></div>
+  <div class="ntile-skel"></div>
+</div>
+
+<script>
+var PROXY='https://api.rss2json.com/v1/api.json?rss_url=';
+var FEEDS=[
+  'https://energyvoice.com/feed/',
+  'https://www.offshore-energy.biz/feed/',
+  'https://oilprice.com/rss/main',
+  'https://www.rigzone.com/news/rss/',
+  'https://www.ogj.com/rss'
+];
+
+var _items=[];
+var _heroIdx=0;
+var _heroTimer=null;
+
+function timeAgo(d){
+  var s=(Date.now()-new Date(d))/1000;
+  if(s<60)return 'Just now';
+  if(s<3600)return Math.floor(s/60)+'m ago';
+  if(s<86400)return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+
+function extractImg(item){
+  return (item.thumbnail&&item.thumbnail.startsWith('http'))?item.thumbnail
+    :(item.enclosure&&item.enclosure.link&&item.enclosure.link.match(/\.(jpg|jpeg|png|webp)/i))?item.enclosure.link
+    :((item.description||'').match(/<img[^>]+src=["']([^"']+)["']/i)||[])[1]
+    ||((item.content||'').match(/<img[^>]+src=["']([^"']+)["']/i)||[])[1]
+    ||'';
+}
+
+function setEditionDate(){
+  var d=new Date();
+  var days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('editionDate').textContent='Edition '+d.getDate()+' '+months[d.getMonth()]+' '+d.getFullYear();
+}
+
+function buildHero(items){
+  var slides=document.getElementById('heroSlides');
+  var dots=document.getElementById('heroDots');
+  slides.innerHTML=items.slice(0,5).map(function(item){
+    var img=extractImg(item);
+    var src=(item.source||item.author||'The Register').replace(/</g,'&lt;');
+    var ago=timeAgo(item.pubDate||new Date());
+    return '<div class="hero-slide">'
+      +(img?'<img src="'+img+'" alt="" onerror="this.style.display=\'none\'">'
+           :'<div style="width:100%;height:100%;background:linear-gradient(135deg,#6B0010,#c0111f);display:flex;align-items:center;justify-content:center;font-size:48px;">⛽</div>')
+      +'<div class="hero-grad"></div>'
+      +'<div class="hero-src">'+src+'</div>'
+      +'<div class="hero-body">'
+        +'<div class="hero-title">'+(item.title||'').replace(/</g,'&lt;')+'</div>'
+        +'<div class="hero-meta">'+src+' · '+ago+'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+  var count=Math.min(items.length,5);
+  dots.innerHTML=Array.from({length:count},function(_,i){
+    return '<div class="hero-dot'+(i===0?' active':'')+'" onclick="event.stopPropagation();goHero('+i+')"></div>';
+  }).join('');
+  document.getElementById('heroSkel').style.display='none';
+  document.getElementById('heroWrap').style.display='block';
+  startHeroAuto();
+}
+
+function goHero(idx){
+  _heroIdx=idx;
+  document.getElementById('heroSlides').style.transform='translateX(-'+idx*100+'%)';
+  document.querySelectorAll('.hero-dot').forEach(function(d,i){d.classList.toggle('active',i===idx);});
+}
+
+function startHeroAuto(){
+  clearInterval(_heroTimer);
+  _heroTimer=setInterval(function(){
+    var count=document.querySelectorAll('.hero-slide').length;
+    goHero((_heroIdx+1)%count);
+  },4500);
+}
+
+function heroClick(){
+  var item=_items[_heroIdx];
+  if(item&&item.link)window.open(item.link,'_blank');
+}
+
+function buildGrid(items){
+  var grid=document.getElementById('newsGrid');
+  var tiles=items.slice(5,13);
+  if(!tiles.length){grid.innerHTML='<div class="no-feed">No articles available</div>';return;}
+  grid.innerHTML=tiles.map(function(item){
+    var img=extractImg(item);
+    var src=(item.source||item.author||'News').replace(/</g,'&lt;');
+    var ago=timeAgo(item.pubDate||new Date());
+    var url=item.link||'#';
+    return '<div class="ntile" onclick="window.open(\''+url+'\',\'_blank\')">'
+      +'<div class="ntile-img">'
+        +(img
+          ?'<img src="'+img+'" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">'
+           +'<div class="ntile-img-fallback" style="display:none">⛽</div>'
+          :'<div class="ntile-img-fallback">⛽</div>')
+      +'</div>'
+      +'<div class="ntile-body">'
+        +'<div class="ntile-tag">'+src+'</div>'
+        +'<div class="ntile-title">'+(item.title||'').replace(/</g,'&lt;')+'</div>'
+        +'<div class="ntile-meta">'+ago+'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function tryFeed(idx){
+  if(idx>=FEEDS.length){
+    document.getElementById('heroSkel').style.display='none';
+    document.getElementById('newsGrid').innerHTML='<div class="no-feed">Feed unavailable — check back soon.</div>';
+    return;
+  }
+  fetch(PROXY+encodeURIComponent(FEEDS[idx])+'&count=20')
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.items&&d.items.length>=3){
+        _items=d.items;
+        buildHero(d.items);
+        buildGrid(d.items);
+      } else {
+        tryFeed(idx+1);
+      }
+    })
+    .catch(function(){tryFeed(idx+1);});
+}
+
+function loadAll(){
+  _heroIdx=0;
+  clearInterval(_heroTimer);
+  document.getElementById('heroSkel').style.display='block';
+  document.getElementById('heroWrap').style.display='none';
+  document.getElementById('newsGrid').innerHTML='<div class="ntile-skel"></div><div class="ntile-skel"></div><div class="ntile-skel"></div><div class="ntile-skel"></div>';
+  setEditionDate();
+  tryFeed(0);
+}
+
+loadAll();
+setInterval(loadAll,600000);
+</script>
+</body>
+</html>
